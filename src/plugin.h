@@ -1,7 +1,6 @@
 /*
- * TeamSpeak 3 demo plugin
- *
- * Copyright (c) 2008-2015 TeamSpeak Systems GmbH
+ * Purifier plugin
+ * Copyright 2015 Matteo Signer.
  */
 
 #ifndef PLUGIN_H
