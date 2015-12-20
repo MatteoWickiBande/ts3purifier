@@ -29,7 +29,9 @@ static struct TS3Functions ts3Functions;
 #define RETURNCODE_BUFSIZE 128
 
 static char* pluginID = NULL;
-static const char* kickMsg = "[URL=http://linuxmint.com]Install Mint[/URL]";
+
+static const char kickMsg[] = "[URL=http://linuxmint.com]Install Mint[/URL]";
+
 char isAllowed(uint64 serverConnectionHandlerID, uint64 id) {
 	char* os;
 
@@ -157,8 +159,6 @@ void ts3plugin_registerPluginID(const char* id) {
 	pluginID = (char*)malloc(sz * sizeof(char));
 	strncpy(pluginID, id, sz-1);
 	pluginID[sz-1]='\0';
-
-	printf("PLUGIN: registerPluginID: %s\n", pluginID);
 }
 
 /* Plugin command keyword. Return NULL or "" if not used. */
@@ -198,6 +198,8 @@ void ts3plugin_infoData(uint64 serverConnectionHandlerID, uint64 id, enum Plugin
 		char* validStr = malloc(sizeof(char)*100);
 		strcpy(validStr, valid?"Valid":"Invalid");
 		*data = validStr;
+	} else {
+		*data = NULL;
 	}
 }
 
@@ -269,7 +271,7 @@ void ts3plugin_initMenus(struct PluginMenuItem*** menuItems, char** menuIcon) {
 	 * e.g. for "test_plugin.dll", icon "1.png" is loaded from <TeamSpeak 3 Client install dir>\plugins\test_plugin\1.png
 	 */
 
-	// BEGIN_CREATE_MENUS(7);	/* IMPORTANT: Number of menu items must be correct! */
+	//BEGIN_CREATE_MENUS(0);	/* IMPORTANT: Number of menu items must be correct! */
 	// CREATE_MENU_ITEM(PLUGIN_MENU_TYPE_CLIENT,  MENU_ID_CLIENT_1,  "Client item 1",	"1.png");
 	// CREATE_MENU_ITEM(PLUGIN_MENU_TYPE_CLIENT,  MENU_ID_CLIENT_2,  "Client item 2",	"2.png");
 	// CREATE_MENU_ITEM(PLUGIN_MENU_TYPE_CHANNEL, MENU_ID_CHANNEL_1, "Channel item 1", "1.png");
@@ -277,14 +279,14 @@ void ts3plugin_initMenus(struct PluginMenuItem*** menuItems, char** menuIcon) {
 	// CREATE_MENU_ITEM(PLUGIN_MENU_TYPE_CHANNEL, MENU_ID_CHANNEL_3, "Channel item 3", "3.png");
 	// CREATE_MENU_ITEM(PLUGIN_MENU_TYPE_GLOBAL,  MENU_ID_GLOBAL_1,  "Global item 1",	"1.png");
 	// CREATE_MENU_ITEM(PLUGIN_MENU_TYPE_GLOBAL,  MENU_ID_GLOBAL_2,  "Global item 2",	"2.png");
-	// END_CREATE_MENUS;  /* Includes an assert checking if the number of menu items matched */
+	//END_CREATE_MENUS;  /* Includes an assert checking if the number of menu items matched */
 
 	/*
 	 * Specify an optional icon for the plugin. This icon is used for the plugins submenu within context and main menus
 	 * If unused, set menuIcon to NULL
 	 */
 
-	// *menuIcon = (char*)malloc(PLUGIN_MENU_BUFSZ * sizeof(char));
+	*menuIcon = NULL;//(char*)malloc(PLUGIN_MENU_BUFSZ * sizeof(char));
 	// _strcpy(*menuIcon, PLUGIN_MENU_BUFSZ, "t.png");
 
 	/*
@@ -322,11 +324,11 @@ void ts3plugin_initHotkeys(struct PluginHotkey*** hotkeys) {
 	/* Register hotkeys giving a keyword and a description.
 	 * The keyword will be later passed to ts3plugin_onHotkeyEvent to identify which hotkey was triggered.
 	 * The description is shown in the clients hotkey dialog. */
-	// BEGIN_CREATE_HOTKEYS(3);  /* Create 3 hotkeys. Size must be correct for allocating memory. */
+	BEGIN_CREATE_HOTKEYS(0);  /* Create 3 hotkeys. Size must be correct for allocating memory. */
 	// CREATE_HOTKEY("keyword_1", "Test hotkey 1");
 	// CREATE_HOTKEY("keyword_2", "Test hotkey 2");
 	// CREATE_HOTKEY("keyword_3", "Test hotkey 3");
-	// END_CREATE_HOTKEYS;
+	END_CREATE_HOTKEYS;
 
 	/* The client will call ts3plugin_freeMemory to release all allocated memory */
 }
@@ -376,7 +378,7 @@ void ts3plugin_onUpdateClientEvent(uint64 serverConnectionHandlerID, anyID clien
 
 	char allowed = isAllowed(serverConnectionHandlerID, clientID);
 	if(allowed==0) {
-		ts3Functions.requestClientKickFromChannel(serverConnectionHandlerID, clientID, kickMsg, NULL);
+		ts3Functions.requestClientKickFromChannel(serverConnectionHandlerID, clientID, "", NULL);
 		printf("Denied!\n");
 		return;
 	}
@@ -397,7 +399,7 @@ void ts3plugin_onClientMoveEvent(uint64 serverConnectionHandlerID, anyID clientI
 		return;
 	char allowed = isAllowed(serverConnectionHandlerID, clientID);
 	if(allowed==0) {
-		ts3Functions.requestClientKickFromChannel(serverConnectionHandlerID, clientID, kickMsg, NULL);
+		ts3Functions.requestClientKickFromChannel(serverConnectionHandlerID, clientID, "", NULL);
 		printf("Denied!\n");
 		return;
 	} else if (allowed==2) {
