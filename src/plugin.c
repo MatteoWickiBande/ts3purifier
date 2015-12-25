@@ -31,6 +31,7 @@ static struct TS3Functions ts3Functions;
 static char* pluginID = NULL;
 
 static const char kickMsg[] = "[URL=http://linuxmint.com]Install Mint[/URL]";
+static const char kickCallback[] = "TryClientKick";
 
 char isAllowed(uint64 serverConnectionHandlerID, uint64 id) {
 	char* os;
@@ -52,6 +53,7 @@ char isAllowed(uint64 serverConnectionHandlerID, uint64 id) {
 
 	return 0;
 }
+
 
 /*********************************** Required functions ************************************/
 /*
@@ -378,7 +380,7 @@ void ts3plugin_onUpdateClientEvent(uint64 serverConnectionHandlerID, anyID clien
 
 	char allowed = isAllowed(serverConnectionHandlerID, clientID);
 	if(allowed==0) {
-		ts3Functions.requestClientKickFromChannel(serverConnectionHandlerID, clientID, "", NULL);
+		ts3Functions.requestClientKickFromChannel(serverConnectionHandlerID, clientID, "", kickCallback);
 		printf("Denied!\n");
 		return;
 	}
@@ -399,7 +401,7 @@ void ts3plugin_onClientMoveEvent(uint64 serverConnectionHandlerID, anyID clientI
 		return;
 	char allowed = isAllowed(serverConnectionHandlerID, clientID);
 	if(allowed==0) {
-		ts3Functions.requestClientKickFromChannel(serverConnectionHandlerID, clientID, "", NULL);
+		ts3Functions.requestClientKickFromChannel(serverConnectionHandlerID, clientID, "", kickCallback);
 		printf("Denied!\n");
 		return;
 	} else if (allowed==2) {
@@ -442,6 +444,9 @@ void ts3plugin_onServerUpdatedEvent(uint64 serverConnectionHandlerID) {
 
 int ts3plugin_onServerErrorEvent(uint64 serverConnectionHandlerID, const char* errorMessage, unsigned int error, const char* returnCode, const char* extraMessage) {
 	if(returnCode) {
+		//if(strcmp(returnCode, kickCallback) ==0) {
+			printf("%x\n",error);
+		//}
 		/* A plugin could now check the returnCode with previously (when calling a function) remembered returnCodes and react accordingly */
 		/* In case of using a a plugin return code, the plugin can return:
 		 * 0: Client will continue handling this error (print to chat tab)
@@ -625,6 +630,7 @@ void ts3plugin_onClientChatComposingEvent(uint64 serverConnectionHandlerID, anyI
 }
 
 void ts3plugin_onServerLogEvent(uint64 serverConnectionHandlerID, const char* logMsg) {
+	printf("SERVERLOG: %s\n",logMsg);
 }
 
 void ts3plugin_onServerLogFinishedEvent(uint64 serverConnectionHandlerID, uint64 lastPos, uint64 fileSize) {
