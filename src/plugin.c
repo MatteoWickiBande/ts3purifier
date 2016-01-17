@@ -30,6 +30,8 @@ static struct TS3Functions ts3Functions;
 
 static char* pluginID = NULL;
 
+static uint64 purifierConnection = 0;
+
 static const char kickMsg[] = "[URL=http://linuxmint.com]Install Mint[/URL]";
 static const char kickCallback[] = "TryClientKick";
 
@@ -83,7 +85,7 @@ const char* ts3plugin_author() {
 
 /* Plugin description */
 const char* ts3plugin_description() {
-	return "Purifies the current channel.";
+	return "Purifies the current channel. The phonetic nickname of the client must be `Purifier`.";
 }
 
 /* Set TeamSpeak 3 callback functions */
@@ -176,6 +178,7 @@ int ts3plugin_processCommand(uint64 serverConnectionHandlerID, const char* comma
 /* Client changed current server connection handler */
 void ts3plugin_currentServerConnectionChanged(uint64 serverConnectionHandlerID) {
 	printf("PLUGIN: currentServerConnectionChanged %llu (%llu)\n", (long long unsigned int)serverConnectionHandlerID, (long long unsigned int)ts3Functions.getCurrentServerConnectionHandlerID());
+
 }
 
 /*
@@ -344,6 +347,12 @@ void ts3plugin_initHotkeys(struct PluginHotkey*** hotkeys) {
 /* Clientlib */
 
 void ts3plugin_onConnectStatusChangeEvent(uint64 serverConnectionHandlerID, int newStatus, unsigned int errorNumber) {
+	char* phonNick = NULL;
+	ts3Functions.getClientSelfVariableAsString(serverConnectionHandlerID, CLIENT_NICKNAME_PHONETIC, &phonNick);
+	if(strcmp(phonNick, "Purifier") == 0) {
+		purifierConnection = serverConnectionHandlerID;
+		printf("Found Purifier!");
+	}
 
 }
 
@@ -366,6 +375,7 @@ void ts3plugin_onUpdateChannelEditedEvent(uint64 serverConnectionHandlerID, uint
 }
 
 void ts3plugin_onUpdateClientEvent(uint64 serverConnectionHandlerID, anyID clientID, anyID invokerID, const char* invokerName, const char* invokerUniqueIdentifier) {
+	if(serverConnectionHandlerID != purifierConnection) return;
 	
 	anyID me;
 	ts3Functions.getClientID(serverConnectionHandlerID, &me);
@@ -390,6 +400,8 @@ void ts3plugin_onUpdateClientEvent(uint64 serverConnectionHandlerID, anyID clien
 }
 
 void ts3plugin_onClientMoveEvent(uint64 serverConnectionHandlerID, anyID clientID, uint64 oldChannelID, uint64 newChannelID, int visibility, const char* moveMessage) {
+	if(serverConnectionHandlerID != purifierConnection) return;
+
 	anyID me;
 	ts3Functions.getClientID(serverConnectionHandlerID, &me);
 	if(clientID == me)
